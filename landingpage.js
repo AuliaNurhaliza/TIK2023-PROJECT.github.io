@@ -4,7 +4,7 @@ const startButton = document.getElementById('startButton');
 // Tambahkan event listener untuk menanggapi klik tombol "Mulai"
 startButton.addEventListener('click', function() {
     // Arahkan pengguna ke halaman index
-    window.location.href = 'index.html'; // Sesuaikan dengan nama file halaman index Anda
+    window.location.href = 'homee.html'; // Sesuaikan dengan nama file halaman index Anda
 
     // Tambahkan kelas untuk animasi slide ke kiri
     document.body.classList.add('slide-left');
