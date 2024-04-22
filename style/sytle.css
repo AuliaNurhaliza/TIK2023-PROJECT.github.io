@@ -230,3 +230,74 @@ p {
     font-size: 2rem; /* 11px */
     line-height: 1.9rem;
 }
+
+/* Tambahan CSS untuk halaman landing */
+
+/* Landing Container */
+.landing-container {
+    text-align: center;
+    padding: 100px 0;
+}
+
+/* Judul */
+.landing-container h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--primaryTextColor);
+    margin-bottom: 20px;
+}
+
+/* Pesan */
+.landing-container p {
+    font-size: 1.2rem;
+    color: var(--secondaryTextColor);
+    margin-bottom: 40px;
+}
+
+/* Tombol Mulai */
+#startButton {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    background-color: var(--primaryBackgroundColor);
+    color: var(--primaryTextColor);
+    border: 2px solid var(--primaryTextColor);
+    border-radius: var(--itemBorderRadius);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+#startButton:hover {
+    background-color: var(--primaryTextColor);
+    color: var(--primaryBackgroundColor);
+}
+
+/* CSS untuk transisi slide ke kiri */
+.slide-left {
+    animation: slideLeft 0.5s ease-out;
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+/* Animasi zoom in */
+/* Animasi zoom in saat halaman dimuat */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Tambahkan kelas untuk animasi zoom in */
+.zoom-in {
+    animation: zoomIn 1s ease-out;
+}
