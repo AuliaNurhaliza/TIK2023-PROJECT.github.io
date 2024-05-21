@@ -1,6 +1,57 @@
 <?php
 include 'config.php';
 
+// Buat direktori uploads jika belum ada
+$uploadDir = 'uploads/';
+if (!file_exists($uploadDir)) {
+    if (!mkdir($uploadDir, 0777, true)) {
+        die('Gagal membuat direktori uploads.');
+    }
+}
+
+// Proses unggah gambar dan deskripsi
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $description = $_POST['description'];
+    $target_file = $uploadDir . basename($_FILES["image"]["name"]);
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+    // Check if image file is a actual image or fake image
+    $check = getimagesize($_FILES["image"]["tmp_name"]);
+    if ($check !== false) {
+        // Check if file already exists
+        if (file_exists($target_file)) {
+            echo "Sorry, file already exists.";
+            exit;
+        }
+        // Check file size
+        if ($_FILES["image"]["size"] > 5000000) {
+            echo "Sorry, your file is too large.";
+            exit;
+        }
+        // Allow certain file formats
+        if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg") {
+            echo "Sorry, only JPG, JPEG, & PNG files are allowed.";
+            exit;
+        }
+        // if everything is ok, try to upload file
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+            // Insert into database
+            $sql = "INSERT INTO categories (image_url, description) VALUES ('$target_file', '$description')";
+            if ($conn->query($sql) === TRUE) {
+                echo "The file " . htmlspecialchars(basename($_FILES["image"]["name"])) . " has been uploaded.";
+                echo '<br><a href="blog.php">Go to slideshow</a>';
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error;
+            }
+        } else {
+            echo "Sorry, there was an error uploading your file.";
+        }
+    } else {
+        echo "File is not an image.";
+    }
+}
+
+// Ambil data dari database
 $sql = "SELECT * FROM categories";
 $result = $conn->query($sql);
 $slides = array();
@@ -16,11 +67,10 @@ $conn->close();
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Blog Makanan</title>
+    <title>Blog Resep Makanan</title>
     <style>
         /* CSS Styles */
         body {
@@ -29,7 +79,6 @@ $conn->close();
             padding: 0;
             background-color: #f2f2f2;
         }
-
         .header {
             background-color: #333;
             color: #fff;
@@ -37,127 +86,153 @@ $conn->close();
             padding: 20px;
             margin-bottom: 20px;
         }
-
         .slideshow-container {
             position: relative;
             max-width: 800px;
-            width: 35%;
+            width: 90%;
             margin: auto;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background: #f8f9fa;
-            /* Ubah warna background */
+            background: #fff;
             border-radius: 10px;
             overflow: hidden;
         }
-
         .slide {
             display: none;
             text-align: center;
         }
-
         .slide img {
             width: 100%;
-            /* Set lebar gambar menjadi 100% */
             height: 300px;
-            /* Tetapkan tinggi gambar */
             object-fit: cover;
-            /* Atur gambar agar mengisi area */
             border-bottom: 1px solid #ddd;
         }
-
         .description {
-            display: none;
-            /* Hide description by default */
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            max-width: 200px;
-            /* Adjust as needed */
-            margin: 0 auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-top: 1px solid #ddd;
         }
-
         .button-container {
             text-align: center;
             margin-top: 20px;
-            /* Tingkatkan margin top */
         }
-
         .button {
             padding: 15px 25px;
-            /* Tingkatkan padding */
             margin: 0 10px;
-            /* Tingkatkan margin */
             font-size: 18px;
-            /* Tingkatkan font size */
             cursor: pointer;
             border: none;
             border-radius: 30px;
-            /* Ubah bentuk menjadi oval */
             background-color: #e67e22;
-            /* Warna oranye yang sesuai dengan konsep makanan */
             color: white;
             transition: background-color 0.3s ease;
         }
-
         .button:hover {
             background-color: #d35400;
-            /* Ubah warna saat hover */
+        }
+        .upload-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .upload-container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
     </style>
 </head>
-
 <body>
     <div class="header">
-        <h1>Beberapa Resep Makanan</h1>
+        <h1>Kumpulan Resep Makanan</h1>
     </div>
 
-    <body>
-        <div class="slideshow-container">
-            <?php
-            foreach ($slides as $index => $slide) {
-                $display = ($index == 0) ? 'block' : 'none'; // Show first slide, hide others
-                echo '<div class="slide" style="display: ' . $display . '">';
-                echo '<a href="detail.php?id=' . $slide["id"] . '">';
-                echo '<img src="' . $slide["image_url"] . '" alt="Image">';
-                echo '</a>';
-                echo '<p class="description">' . $slide["description"] . '</p>'; // Description paragraph
-                echo '</div>';
+    <div class="slideshow-container">
+        <?php
+        foreach ($slides as $index => $slide) {
+            $display = ($index == 0) ? 'block' : 'none'; // Show first slide, hide others
+            echo '<div class="slide" style="display: ' . $display . '">';
+            echo '<a href="detail.php?id=' . $slide["id"] . '">';
+            echo '<img src="' . $slide["image_url"] . '" alt="Image">';
+            echo '</a>';
+            echo '<div class="description" id="description-' . $index . '">' . substr($slide["description"], 0, 100) . '...' . '</div>'; // Shortened description
+            echo '</div>';
+        }
+        ?>
+    </div>
+
+    <div class="button-container">
+        <button class="button" onclick="scrollSlide(-1)">sebelumnya</button>
+        <button class="button" onclick="goBack()">kembali</button>
+        <button class="button" onclick="scrollSlide(1)">selanjutnya</button>
+        <button class="button" onclick="toggleDescription()">sembunyikan</button>
+    </div>
+
+    <div class="upload-container">
+        <h1>Unggah Gambar dan Teks</h1>
+        <form action="blog.php" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="image">Pilih Gambar:</label>
+                <input type="file" id="image" name="image" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Deskripsi:</label>
+                <textarea id="description" name="description" rows="4" required></textarea>
+            </div>
+            <div class="button-container">
+                <button type="submit" class="button">Unggah</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // JavaScript Code
+        let slides = document.getElementsByClassName("slide");
+        let descriptions = document.getElementsByClassName("description");
+        let currentIndex = 0;
+
+        function showSlide(index) {
+            for (let i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
             }
-            ?>
-        </div>
+            slides[index].style.display = "block";
+        }
 
-        <div class="button-container">
-            <button class="button" onclick="scrollSlide(-1)">Previous</button>
-            <button class="button" onclick="goBack()">Go Back</button>
-            <button class="button" onclick="scrollSlide(1)">Next</button>
+        function scrollSlide(n) {
+            currentIndex = (currentIndex + n + slides.length) % slides.length;
+            showSlide(currentIndex);
+        }
 
-        </div>
+        function goBack() {
+            window.history.back();
+        }
 
-        <script>
-            // JavaScript Code
-            let slides = document.getElementsByClassName("slide");
-            let currentIndex = 0;
+        setInterval(function() {
+            scrollSlide(1);
+        }, 3000); // Change slide every 5 seconds
 
-            function showSlide(index) {
-                for (let i = 0; i < slides.length; i++) {
-                    slides[i].style.display = "none";
-                }
-                slides[index].style.display = "block";
+        // Function to toggle description visibility
+        function toggleDescription() {
+            for (let i = 0; i < descriptions.length; i++) {
+                descriptions[i].style.display = descriptions[i].style.display === 'none' ? 'block' : 'none';
             }
-
-            function scrollSlide(n) {
-                currentIndex = (currentIndex + n + slides.length) % slides.length;
-                showSlide(currentIndex);
-            }
-
-            function goBack() {
-                window.history.back();
-            }
-
-            setInterval(function () {
-                scrollSlide(1);
-            }, 1500); // Change slide every 5 seconds
-        </script>
-    </body>
-
+        }
+    </script>
+</body>
 </html>
