@@ -1,0 +1,116 @@
+<?php
+include 'config.php';
+
+$sql = "SELECT * FROM categories";
+$result = $conn->query($sql);
+$slides = array();
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $slides[] = $row;
+    }
+} else {
+    echo "Tidak ada data kategori.";
+}
+$conn->close();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Kategori</title>
+    <style>
+        /* CSS Styles */
+        /* ... */
+        .slideshow-container {
+            position: relative;
+            max-width: 800px;
+            width: 100%;
+            margin: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .slide {
+            display: none;
+            text-align: center;
+        }
+        .slide img {
+            width: 100%;
+            height: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        .description {
+            display: none; /* Hide description by default */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 200px; /* Adjust as needed */
+            margin: 0 auto;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <?php
+        foreach ($slides as $index => $slide) {
+            $display = ($index == 0) ? 'block' : 'none'; // Show first slide, hide others
+            echo '<div class="slide" style="display: ' . $display . '">';
+            echo '<a href="detail.php?id=' . $slide["id"] . '">';
+            echo '<img src="' . $slide["image_url"] . '" alt="Image">';
+            echo '</a>';
+            echo '<p class="description">' . $slide["description"] . '</p>'; // Description paragraph
+            echo '</div>';
+        }
+        ?>
+    </div>
+
+    <div class="button-container">
+        <button class="button" onclick="scrollSlide(-1)">Previous</button>
+        <button class="button" onclick="scrollSlide(1)">Next</button>
+        <button class="button" onclick="goBack()">Go Back</button>
+    </div>
+
+    <script>
+        // JavaScript Code
+        let slides = document.getElementsByClassName("slide");
+        let currentIndex = 0;
+
+        function showSlide(index) {
+            for (let i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            slides[index].style.display = "block";
+        }
+
+        function scrollSlide(n) {
+            currentIndex = (currentIndex + n + slides.length) % slides.length;
+            showSlide(currentIndex);
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        setInterval(function() {
+            scrollSlide(1);
+        }, 5000); // Change slide every 5 seconds
+    </script>
+</body>
+</html>

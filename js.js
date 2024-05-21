@@ -13,5 +13,5 @@ const startButton = document.getElementById('startButton');
 // Menambahkan event listener untuk mengarahkan ke halaman index saat tombol "Mulai" diklik
 startButton.addEventListener('click', function() {
     // Mengarahkan ke halaman index
-    window.location.href = 'index.html';
+    window.location.href = 'homee.html';
 });
